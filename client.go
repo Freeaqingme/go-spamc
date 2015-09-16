@@ -316,7 +316,9 @@ func processResponse(cmd string, data *bufio.Reader) (returnObj *SpamDOut, err e
 	r := regexp.MustCompile(`(?i)SPAMD\/([0-9\.]+)\s([0-9]+)\s([0-9A-Z_]+)`)
 	var result = r.FindStringSubmatch(lineStr)
 	if len(result) < 4 {
-		if cmd != "SKIP" {
+		// We're not actually sure what a line of zero length represents. However,
+		// we're now testing if it helps to ignore these zero-length lines.
+		if cmd != "SKIP" && len(result) > 0 {
 			err = errors.New("spamd unrecognized reply:" + lineStr)
 		} else {
 			returnObj.Code = EX_OK
