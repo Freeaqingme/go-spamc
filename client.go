@@ -91,7 +91,7 @@ const TABLE_MARK = "----"
 
 //Types
 type Client struct {
-	ConnTimoutSecs  int
+	ConnTimout      float64
 	ProtocolVersion string
 	Host            string
 	User            string
@@ -108,7 +108,7 @@ type SpamDOut struct {
 type FnCallback func(*bufio.Reader) (*SpamDOut, error)
 
 //new instance of Client
-func New(host string, timeout int) *Client {
+func New(host string, timeout float64) *Client {
 	return &Client{timeout, PROTOCOL_VERSION, host, ""}
 }
 
@@ -272,7 +272,7 @@ func (s *Client) call(abort chan bool, cmd string, msgpars []string, onData FnCa
 		return
 	}
 	// Set connection timeout
-	timeout := time.Now().Add(time.Duration(s.ConnTimoutSecs) * time.Duration(time.Second))
+	timeout := time.Now().Add(time.Duration(s.ConnTimout) * time.Duration(time.Second))
 	errTimeout := stream.SetDeadline(timeout)
 	if errTimeout != nil {
 		err = errors.New("Connection to spamd Timed Out:" + errTimeout.Error())
