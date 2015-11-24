@@ -55,7 +55,6 @@ var SpamDError = map[int]string{
 
 //Default parameters
 const PROTOCOL_VERSION = "1.5"
-const DEFAULT_TIMEOUT = 10
 
 //Command types
 const CHECK = "CHECK"
@@ -91,7 +90,8 @@ const TABLE_MARK = "----"
 
 //Types
 type Client struct {
-	ConnTimout      float64
+	ConnectTimeout  float64
+	Timout          float64
 	ProtocolVersion string
 	Host            string
 	User            string
@@ -108,8 +108,8 @@ type SpamDOut struct {
 type FnCallback func(*bufio.Reader) (*SpamDOut, error)
 
 //new instance of Client
-func New(host string, timeout float64) *Client {
-	return &Client{timeout, PROTOCOL_VERSION, host, ""}
+func New(host string, timeout, connectTimeout float64) *Client {
+	return &Client{connectTimeout, timeout, PROTOCOL_VERSION, host, ""}
 }
 
 func (s *Client) SetUnixUser(user string) {
@@ -265,14 +265,14 @@ func (s *Client) call(abort chan bool, cmd string, msgpars []string, onData FnCa
 	}
 
 	// Create a new connection, with a reasonable timeout
-	stream, err := net.DialTimeout("tcp", s.Host, time.Duration(DEFAULT_TIMEOUT)*time.Second)
+	stream, err := net.DialTimeout("tcp", s.Host, time.Duration(s.ConnectTimeout)*time.Second)
 
 	if err != nil {
 		err = errors.New("Connection dial error to spamd: " + err.Error())
 		return
 	}
 	// Set connection timeout
-	timeout := time.Now().Add(time.Duration(s.ConnTimout) * time.Duration(time.Second))
+	timeout := time.Now().Add(time.Duration(s.Timout) * time.Second)
 	errTimeout := stream.SetDeadline(timeout)
 	if errTimeout != nil {
 		err = errors.New("Connection to spamd Timed Out:" + errTimeout.Error())
