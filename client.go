@@ -162,7 +162,7 @@ func (s *Client) Headers(abort chan bool, msgpars ...string) (reply *SpamDOut, e
 }
 
 //Sign the message as spam
-func (s *Client) ReportingSpam(abort chan bool, msgpars ...string) (reply *SpamDOut, err error) {
+func (s *Client) ReportSpam(abort chan bool, msgpars ...string) (reply *SpamDOut, err error) {
 	headers := map[string]string{
 		"Message-class": "spam",
 		"Set":           "local,remote",
@@ -170,8 +170,7 @@ func (s *Client) ReportingSpam(abort chan bool, msgpars ...string) (reply *SpamD
 	return s.Tell(abort, msgpars, &headers)
 }
 
-//Sign the message as false-positive
-func (s *Client) RevokeSpam(abort chan bool, msgpars ...string) (reply *SpamDOut, err error) {
+func (s *Client) ReportHam(abort chan bool, msgpars ...string) (reply *SpamDOut, err error) {
 	headers := map[string]string{
 		"Message-class": "ham",
 		"Set":           "local,remote",
