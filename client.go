@@ -2,6 +2,7 @@ package spamc
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -334,14 +335,26 @@ func processResponse(cmd string, data *bufio.Reader) (returnObj *SpamDOut, err e
 	returnObj = new(SpamDOut)
 	returnObj.Code = -1
 	//read the first line
-	line, _, _ := data.ReadLine()
+	line, _, e := data.ReadLine()
 	lineStr := string(line)
 
 	r := regexp.MustCompile(`(?i)SPAMD\/([0-9\.\-]+)\s([0-9]+)\s([0-9A-Z_]+)`)
 	var result = r.FindStringSubmatch(lineStr)
 	if len(result) < 4 {
 		if cmd != "SKIP" {
-			err = errors.New("spamd unrecognized reply:" + lineStr)
+			var errorbuffer bytes.Buffer
+
+			errorbuffer.WriteString("spamd unrecognized reply: '")
+			errorbuffer.WriteString(lineStr)
+			errorbuffer.WriteString("'")
+
+			if e != nil {
+				errorbuffer.WriteString(", error: '")
+				errorbuffer.WriteString(e.Error())
+				errorbuffer.WriteString("'")
+			}
+
+			err = errors.New(errorbuffer.String())
 		} else {
 			returnObj.Code = EX_OK
 			returnObj.Message = "SKIPPED"
@@ -434,7 +447,6 @@ func processResponse(cmd string, data *bufio.Reader) (returnObj *SpamDOut, err e
 				lines += string(line) + "\r\n"
 				returnObj.Vars["body"] = lines
 			}
-			return
 		case SYMBOLS:
 			//ignore line break...
 			data.ReadLine()
